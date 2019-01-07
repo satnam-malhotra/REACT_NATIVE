@@ -10,7 +10,8 @@ class HomePage extends Component {
         maxPopulation: 0,
         planetName: null,
         singlePlanet: [],
-        displayDetails: false
+        displayDetails: false,
+        name: null
     };
 
     componentDidMount() {
@@ -38,21 +39,39 @@ class HomePage extends Component {
 
     filterList = (e) => {
         let updatedList = this.state.planets;
+        let inputValue = this.inputValue;
         const filterResult = updatedList.filter((planet) => {
-            return planet.name.toLowerCase().indexOf(e.target.value) > -1
+            return planet.name.toLowerCase().indexOf(inputValue) > -1
         });
         this.setState({
             updatedPlanets: filterResult
         });
     };
 
+    refreshList = (e) => {
+        let updatedList = this.state.planets;
+        const freshList = updatedList.filter((planet) => {
+            return planet.name
+        });
+        this.setState({
+            updatedPlanets: freshList,
+            name: ''
+        });
+    }
+
     fetchPopulation = (population) => {
-        const width = population / (this.state.maxPopulation / 100);
-        if (width < 20) {
-            return 20
-        } else {
-            return width
-        }
+        console.log("&&&&&&&", population)
+        const width = population/10000000000;
+        console.log("^^^^^^^", width)
+        // let finalValue = Math.round((width))
+        // console.log("$$$$$$4", finalValue)
+        return width*100
+
+        // if (width < 20) {
+        //     return 20
+        // } else {
+        //     return width
+        // }
     };
 
     fetchDetails = () => {
@@ -67,11 +86,17 @@ class HomePage extends Component {
         }
     };
 
-    onMouseHover = (event) => {
+    onMouseClick = (event) => {
         this.setState({planetName: event.target.innerHTML, displayDetails: true})
         this.fetchDetails()
 
     };
+
+    resetName = (event) => {
+        this.setState({
+            name: ''
+        });
+    }
 
     render() {
         if (this.state.toLoginPage === true) {
@@ -79,37 +104,57 @@ class HomePage extends Component {
         }
         return (
             <div>
-                <div style={{height: '160px', width: '200px', position: 'fixed', left:'0', top:'0', margin:"20px 20px 20px 20px", color:'blue'}}>
+                <div style={{
+                    height: '160px',
+                    width: '200px',
+                    position: 'fixed',
+                    left: '0',
+                    top: '0',
+                    margin: "0px 0px 0px 10px",
+                    color: 'blue'
+                }}>
                     <p>Planet Details:</p>
                     <p>
                         {
-                            this.state.singlePlanet.length == 0 ? "" : "Planet Name: "+ this.state.singlePlanet[0].name
+                            this.state.singlePlanet.length == 0 ? "" : "Planet Name: " + this.state.singlePlanet[0].name
                         }
                     </p>
                     <p>
                         {
-                            this.state.singlePlanet.length == 0 ? "" : "Population: "+this.state.singlePlanet[0].population
+                            this.state.singlePlanet.length == 0 ? "" : "Population: " + this.state.singlePlanet[0].population
                         }
                     </p>
                     <p>
                         {
-                            this.state.singlePlanet.length == 0 ? "" : "Diameter: "+this.state.singlePlanet[0].diameter
+                            this.state.singlePlanet.length == 0 ? "" : "Diameter: " + this.state.singlePlanet[0].diameter
                         }
                     </p>
 
                 </div>
+                <button className='btn waves-effect waves-light green' style={{borderRadius: 20}}
+                        onClick={this.filterList}>
+                    Search
+                </button>
+                <button className='btn waves-effect waves-light blue' style={{borderRadius: 20}}
+                        onClick={this.refreshList}>
+                    Refresh
+                </button>
                 <div className='right-align'>
                     <button className='btn waves-effect waves-light red' style={{borderRadius: 20}}
                             onClick={this.moveToLogin}>
                         Logout
                     </button>
                 </div>
-                <nav className='black waves-effect'>
+                <nav className='black nav-wrapper'>
                     <div className="nav-wrapper">
                         <form>
                             <div className="input-field">
                                 <input id="search" type="search" placeholder='Search The Planets'
-                                       onChange={this.filterList}/>
+                                       value={this.state.name}
+                                       onChange={(c) => {
+                                           this.inputValue = c.target.value;
+                                           this.setState({name: c.target.value})
+                                       }} name="inputValue"/>
                                 <label className="label-icon" htmlFor="search">
                                     <i className="material-icons">search</i>
                                 </label>
@@ -119,29 +164,27 @@ class HomePage extends Component {
                     </div>
                 </nav>
 
-
                 <div className='center-align'>
                     {
                         this.state.updatedPlanets.map((planets) =>
 
-                            <p onMouseOver={event => this.onMouseHover(event)} style={{
-                                background: '#f1c40f',
-                                borderRadius: 20,
-                                padding: 10,
-                                width: `${this.fetchPopulation(planets.population)}%`
-                            }}>
-                                {planets.name}
 
-                            </p>
+                                <p onClick={event => this.onMouseClick(event)} style={{
+                                    background: '#5ca011',
+                                    borderRadius: 20,
+                                    backgroundImage: 'images/sample-1.jpg',
+                                    padding: 5,
+                                    width: `${this.fetchPopulation(planets.population)}%`
+                                }}>{planets.name}
+                                </p>
+
+
                         )
                     }
                 </div>
-
-
             </div>
 
         )
-
     }
 }
 
