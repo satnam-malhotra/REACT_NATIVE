@@ -1,102 +1,135 @@
 import React, {Component} from 'react';
 import Redirect from "react-router-dom/es/Redirect";
+import * as Materialize from "materialize-css";
 
 class HomePage extends Component {
 
     state = {
         planets: [],
+        planetArray: [],
         toLoginPage: false,
         updatedPlanets: [],
-        maxPopulation: 0,
-        planetName: null,
+        planetName: '',
         singlePlanet: [],
         displayDetails: false,
-        name: null
+        name: '',
+        count: 0,
+        flag: true
     };
 
     componentDidMount() {
-        fetch('https://swapi.co/api/planets').then((Response) => Response.json()).then((findResponse) => {
-            console.log(findResponse.results);
-            const maxPopulation = Math.max(...findResponse.results.map((populate) => {
-                    if (populate.population === "unknown")
-                        return 0;
-                    return parseFloat(populate.population)
-                })
-            );
-            this.setState({
-                planets: findResponse.results,
-                updatedPlanets: findResponse.results,
-                maxPopulation: maxPopulation
-            });
-        })
+        if (localStorage.getItem("name") === '') {
+            this.moveToLogin()
+        }
+        else {
+            fetch('https://swapi.co/api/planets').then((Response) => Response.json()).then((findResponse) => {
+                this.setState({
+                    planets: findResponse.results,
+                    planetArray: findResponse.results,
+                    updatedPlanets: findResponse.results,
+                });
+            })
+        }
+
     };
 
     moveToLogin = () => {
         this.setState({
             toLoginPage: true
         })
+        localStorage.setItem("name", '');
     };
 
-    filterList = (e) => {
-        let updatedList = this.state.planets;
-        let inputValue = this.inputValue;
-        const filterResult = updatedList.filter((planet) => {
-            return planet.name.toLowerCase().indexOf(inputValue) > -1
-        });
-        this.setState({
-            updatedPlanets: filterResult
-        });
+    filterList = () => {
+        if (this.state.count === 0) {
+            setTimeout(this.resetCount, 60000)
+        }
+        if (this.inputValue.length === 0) {
+            this.setState({
+                updatedPlanets: this.state.planetArray,
+            });
+        }
+        else {
+            if (this.state.count < 5 || localStorage.getItem("name") === 'luke skywalker') {
+                fetch('https://swapi.co/api/planets/?search=' + this.inputValue).then((Response) => Response.json()).then((findResponse) => {
+                    this.setState({
+                        planets: findResponse.results,
+                        updatedPlanets: findResponse.results,
+                        count: this.state.count + 1
+                    });
+                })
+            }
+            else {
+                Materialize.Toast.dismissAll();
+                Materialize.toast({
+                    html: 'You have exceeded the maximum search limit!, Please refresh or login again',
+                    displayLength: 4000,
+                    classes: 'rounded'
+                })
+
+            }
+        }
     };
 
-    refreshList = (e) => {
-        let updatedList = this.state.planets;
-        const freshList = updatedList.filter((planet) => {
-            return planet.name
-        });
+    resetCount = () => {
         this.setState({
-            updatedPlanets: freshList,
-            name: ''
+            count: 0
         });
-    }
+    };
 
     fetchPopulation = (population) => {
-        console.log("&&&&&&&", population)
-        const width = population/10000000000;
-        console.log("^^^^^^^", width)
-        // let finalValue = Math.round((width))
-        // console.log("$$$$$$4", finalValue)
-        return width*100
-
-        // if (width < 20) {
-        //     return 20
-        // } else {
-        //     return width
-        // }
+        let value = parseInt(population);
+        if (value > 100000000000 && value <= 1000000000000) {
+            value = 100;
+        }
+        else if (value > 10000000000 && value <= 100000000000) {
+            value = 90;
+        }
+        else if (value > 1000000000 && value <= 10000000000) {
+            value = 80;
+        }
+        else if (value > 100000000 && value <= 1000000000) {
+            value = 70;
+        }
+        else if (value > 10000000 && value <= 100000000) {
+            value = 60;
+        }
+        else if (value > 1000000 && value <= 10000000) {
+            value = 50;
+        }
+        else if (value > 100000 && value <= 1000000) {
+            value = 40;
+        }
+        else if (value > 10000 && value <= 100000) {
+            value = 30;
+        }
+        else if (value > 1000 && value <= 10000) {
+            value = 20;
+        }
+        else if (value > 100 && value <= 1000) {
+            value = 10;
+        }
+        else if (population === 'unknown') {
+            value = 8;
+        }
+        return value
     };
 
     fetchDetails = () => {
         if (this.state.planetName != null) {
-            let singleResult = this.state.planets.filter((single) => {
+            let singleResult = this.state.updatedPlanets.filter((single) => {
                 return single.name.indexOf(this.state.planetName) > -1
             });
             this.setState({
                 singlePlanet: singleResult
             })
-            console.log('my value is coming as', singleResult)
         }
     };
 
     onMouseClick = (event) => {
-        this.setState({planetName: event.target.innerHTML, displayDetails: true})
+        this.setState({planetName: event.target.innerHTML, displayDetails: true});
         this.fetchDetails()
-
     };
-
-    resetName = (event) => {
-        this.setState({
-            name: ''
-        });
-    }
 
     render() {
         if (this.state.toLoginPage === true) {
@@ -111,50 +144,45 @@ class HomePage extends Component {
                     left: '0',
                     top: '0',
                     margin: "0px 0px 0px 10px",
-                    color: 'blue'
+                    color: 'red'
                 }}>
                     <p>Planet Details:</p>
                     <p>
                         {
-                            this.state.singlePlanet.length == 0 ? "" : "Planet Name: " + this.state.singlePlanet[0].name
+                            this.state.singlePlanet.length === 0 ? "" : "Planet Name: " + this.state.singlePlanet[0].name
                         }
                     </p>
                     <p>
                         {
-                            this.state.singlePlanet.length == 0 ? "" : "Population: " + this.state.singlePlanet[0].population
+                            this.state.singlePlanet.length === 0 ? "" : "Population: " + this.state.singlePlanet[0].population
                         }
                     </p>
                     <p>
                         {
-                            this.state.singlePlanet.length == 0 ? "" : "Diameter: " + this.state.singlePlanet[0].diameter
+                            this.state.singlePlanet.length === 0 ? "" : "Diameter: " + this.state.singlePlanet[0].diameter
                         }
                     </p>
-
                 </div>
-                <button className='btn waves-effect waves-light green' style={{borderRadius: 20}}
-                        onClick={this.filterList}>
-                    Search
-                </button>
-                <button className='btn waves-effect waves-light blue' style={{borderRadius: 20}}
-                        onClick={this.refreshList}>
-                    Refresh
-                </button>
-                <div className='right-align'>
+
+                <div className='right-align' style={{padding: 10}}>
                     <button className='btn waves-effect waves-light red' style={{borderRadius: 20}}
                             onClick={this.moveToLogin}>
                         Logout
                     </button>
                 </div>
-                <nav className='black nav-wrapper'>
-                    <div className="nav-wrapper">
+                <nav className='black nav-wrapper' style={{borderRadius: 30}}>
+                    <div className="nav-wrapper rounded">
                         <form>
                             <div className="input-field">
                                 <input id="search" type="search" placeholder='Search The Planets'
                                        value={this.state.name}
                                        onChange={(c) => {
                                            this.inputValue = c.target.value;
-                                           this.setState({name: c.target.value})
-                                       }} name="inputValue"/>
+                                           this.setState({
+                                               name: c.target.value
+                                           });
+                                           this.filterList()
+                                       }} name="inputValue" style={{borderRadius: 30}}/>
                                 <label className="label-icon" htmlFor="search">
                                     <i className="material-icons">search</i>
                                 </label>
@@ -167,18 +195,14 @@ class HomePage extends Component {
                 <div className='center-align'>
                     {
                         this.state.updatedPlanets.map((planets) =>
-
-
-                                <p onClick={event => this.onMouseClick(event)} style={{
-                                    background: '#5ca011',
-                                    borderRadius: 20,
-                                    backgroundImage: 'images/sample-1.jpg',
-                                    padding: 5,
-                                    width: `${this.fetchPopulation(planets.population)}%`
-                                }}>{planets.name}
-                                </p>
-
-
+                            <p onClick={event => this.onMouseClick(event)} style={{
+                                background: '#5ca011',
+                                borderRadius: 20,
+                                backgroundImage: 'images/sample-1.jpg',
+                                padding: 5,
+                                width: `${this.fetchPopulation(planets.population)}%`
+                            }}>{planets.name}
+                            </p>
                         )
                     }
                 </div>

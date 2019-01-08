@@ -12,6 +12,16 @@ class LoginForm extends Component {
         loading: false
     };
 
+    componentDidMount() {
+        if (localStorage.getItem("name") !== "") {
+            console.log("Yes already logged In");
+            this.setState({
+                toHomePage: true
+            });
+        }
+    }
+
+
     emailData = (e) => {
         this.setState({
                 email: e.target.value,
@@ -41,14 +51,19 @@ class LoginForm extends Component {
         e.preventDefault()
     };
 
+    returnUser = (e) => {
+        return this.state.email
+    }
+
     fetchPeople = () => {
         this.setState({
             loading: true
         });
         fetch('https://swapi.co/api/people?search=' + this.state.email).then((Response) => Response.json()).then((findResponse) => {
             if (findResponse.results.length > 0) {
-                var user = findResponse.results[0];
+                let user = findResponse.results[0];
                 if (this.state.email.toLowerCase() === user.name.toLowerCase() && this.state.password.toLowerCase() === user.birth_year.toLowerCase()) {
+                    localStorage.setItem("name", this.state.email);
                     Materialize.toast({
                             html: 'Welcome to StarWars',
                             displayLength: 2000,
@@ -58,7 +73,6 @@ class LoginForm extends Component {
                     this.setState({
                         toHomePage: true
                     });
-
                 }
                 else {
                     Materialize.toast({
