@@ -11,7 +11,6 @@ class HomePage extends Component {
         updatedPlanets: [],
         planetName: '',
         singlePlanet: [],
-        displayDetails: false,
         name: '',
         count: 0,
         flag: true
@@ -49,25 +48,38 @@ class HomePage extends Component {
                 updatedPlanets: this.state.planetArray,
             });
         }
-        else {
-            if (this.state.count < 5 || localStorage.getItem("name") === 'luke skywalker') {
-                fetch('https://swapi.co/api/planets/?search=' + this.inputValue).then((Response) => Response.json()).then((findResponse) => {
+        if (this.state.count < 5 || localStorage.getItem("name") === 'luke skywalker') {
+            fetch('https://swapi.co/api/planets/?search=' + this.inputValue).then((Response) => Response.json()).then((findResponse) => {
+                if (findResponse.results.length === 0) {
+                    Materialize.Toast.dismissAll();
+                    Materialize.toast({
+                        html: 'No result found',
+                        displayLength: 4000,
+                        classes: 'rounded'
+                    })
                     this.setState({
                         planets: findResponse.results,
                         updatedPlanets: findResponse.results,
                         count: this.state.count + 1
                     });
-                })
-            }
-            else {
-                Materialize.Toast.dismissAll();
-                Materialize.toast({
-                    html: 'You have exceeded the maximum search limit!, Please refresh or login again',
-                    displayLength: 4000,
-                    classes: 'rounded'
-                })
+                }
+                else {
+                    this.setState({
+                        planets: findResponse.results,
+                        updatedPlanets: findResponse.results,
+                        count: this.state.count + 1
+                    });
+                }
+            })
+        }
+        else {
+            Materialize.Toast.dismissAll();
+            Materialize.toast({
+                html: 'You have exceeded the maximum search limit!, Please refresh or login again',
+                displayLength: 4000,
+                classes: 'rounded'
+            })
 
-            }
         }
     };
 
@@ -115,10 +127,10 @@ class HomePage extends Component {
         return value
     };
 
-    fetchDetails = () => {
-        if (this.state.planetName != null) {
+    fetchDetails = (e) => {
+        if (e.target.innerHTML != null) {
             let singleResult = this.state.updatedPlanets.filter((single) => {
-                return single.name.indexOf(this.state.planetName) > -1
+                return single.name.indexOf(e.target.innerHTML) > -1
             });
             this.setState({
                 singlePlanet: singleResult
@@ -127,9 +139,9 @@ class HomePage extends Component {
     };
 
     onMouseClick = (event) => {
-        this.setState({planetName: event.target.innerHTML, displayDetails: true});
-        this.fetchDetails()
+        this.fetchDetails(event)
     };
+
 
     render() {
         if (this.state.toLoginPage === true) {
@@ -198,7 +210,6 @@ class HomePage extends Component {
                             <p onClick={event => this.onMouseClick(event)} style={{
                                 background: '#5ca011',
                                 borderRadius: 20,
-                                backgroundImage: 'images/sample-1.jpg',
                                 padding: 5,
                                 width: `${this.fetchPopulation(planets.population)}%`
                             }}>{planets.name}

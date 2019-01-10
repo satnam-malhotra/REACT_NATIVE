@@ -8,7 +8,7 @@ class App extends Component {
     render() {
         return (
             <Router>
-                <div style={{minHeight:'100%', width:'100%'}}>
+                <div style={{minHeight: '100%', width: '100%'}}>
                     <Route exact path={'/'} component={LoginForm}/>
                     <Route path={'/HomePage'} component={HomePage}/>
                 </div>
